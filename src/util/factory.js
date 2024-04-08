@@ -1,5 +1,3 @@
-/* eslint no-constant-condition: "off" */
-
 const d3 = require('d3')
 const _ = {
   map: require('lodash/map'),
@@ -7,7 +5,6 @@ const _ = {
   each: require('lodash/each'),
 }
 
-//const InputSanitizer = require('./inputSanitizer')
 const Radar = require('../models/radar')
 const Quadrant = require('../models/quadrant')
 const Ring = require('../models/ring')
@@ -15,14 +12,13 @@ const Blip = require('../models/blip')
 const GraphingRadar = require('../graphing/radar')
 const config = require('../config')
 const featureToggles = config().featureToggles
-//const { getDocumentOrSheetId } = require('./urlUtils')
 const { getGraphSize, graphConfig } = require('../graphing/config')
-const plotRadar = function (title, blips, currentRadarName, /*alternativeRadars*/) {
+const plotRadar = function (blips, currentRadarName) {
   
-  title = title.substring(0, title.length - 4) // this is for csv
+  //title = title.substring(0, title.length - 4) // this is for csv
 
-  document.title = title
-  d3.selectAll('.loading').remove()
+  //document.title = title
+  document.title = "plotRaderTitle"
 
   var rings = _.map(_.uniqBy(blips, 'ring'), 'ring')
   var ringMap = {}
@@ -46,12 +42,6 @@ const plotRadar = function (title, blips, currentRadarName, /*alternativeRadars*
     radar.addQuadrant(quadrant)
   })
 
-  // if (alternativeRadars !== undefined || true) {
-  //   alternativeRadars.forEach(function (sheetName) {
-  //     radar.addAlternative(sheetName)
-  //   })
-  // }
-
   if (currentRadarName !== undefined || true) {
     radar.setCurrentSheet(currentRadarName)
   }
@@ -72,8 +62,9 @@ function validateInputQuadrantOrRingName(allQuadrantsOrRings, quadrantOrRing) {
   return quadrantOrRingNames.find((quadrantOrRing) => quadrantOrRing.toLowerCase() === formattedInputQuadrant)
 }
 
-const plotRadarGraph = function (title, blips, currentRadarName/*, alternativeRadars*/) {
-  document.title = title.replace(/.(csv)$/, '')
+const plotRadarGraph = function (blips, currentRadarName) {
+  // document.title = title.replace(/.(csv)$/, '')
+  document.title = "Something"
 
   const ringMap = graphConfig.rings.reduce((allRings, ring, index) => {
     allRings[ring] = new Ring(ring, index)
@@ -108,10 +99,6 @@ const plotRadarGraph = function (title, blips, currentRadarName/*, alternativeRa
     radar.addQuadrant(quadrant)
   })
 
-  // alternativeRadars.forEach(function (sheetName) {
-  //   radar.addAlternative(sheetName)
-  // })
-
   radar.setCurrentSheet(currentRadarName)
 
   const graphSize = window.innerHeight - 133 < 620 ? 620 : window.innerHeight - 133
@@ -119,39 +106,45 @@ const plotRadarGraph = function (title, blips, currentRadarName/*, alternativeRa
   new GraphingRadar(size, radar).init().plot()
 }
 
-const CSVDocument = function (filePath) {
+const CSVDocument = function (csvData) {
   var self = {}
-
+  
   self.build = function () {
-    d3.csv(filePath)
-      .then(createBlips)
+    // d3.csv(filePath)
+    //   .then(createBlips)
+    csvfile = d3.csvParse(csvData)
+    createBlips(csvfile)
   }
 
   var createBlips = function (data) {
     delete data.columns
-    var blips = _.map(data/*,new InputSanitizer().sanitize*/)
+    var blips = _.map(data)
     featureToggles.UIRefresh2022
-      ? plotRadarGraph(FileName(filePath), blips, 'CSV File', [])
-      : plotRadar(FileName(filePath), blips, 'CSV File', [])
+      // ? plotRadarGraph(FileName(csvData), blips, 'CSV File', [])
+      // : plotRadar(FileName(csvData), blips, 'CSV File', [])
+      ? plotRadarGraph(blips, 'CSV File', [])
+      : plotRadar(blips, 'CSV File', [])
   }
 
   return self
 }
 
-const FileName = function (filePath) {
-  var search = /([^\\/]+)$/
-  var match = search.exec(decodeURIComponent(filePath.replace(/\+/g, ' ')))
-  if (match != null) {
-    return match[1]
-  }
-  return filePath
-}
+// const FileName = function (filePath) {
+//   var search = /([^\\/]+)$/
+//   var match = search.exec(decodeURIComponent(filePath.replace(/\+/g, ' ')))
+//   if (match != null) {
+//     return match[1]
+//   }
+//   return filePath
+// }
 
-const Factory = function () {
+const Factory = function (test) {
   var sheet
-
+  // https://raw.githubusercontent.com/August-Brandt/DTR-specfile-generator/main/specfile.csv
+  // /data/specfile.csv
   //insert the url for the csv
-  sheet = CSVDocument('https://raw.githubusercontent.com/August-Brandt/DTR-specfile-generator/main/specfile.csv')
+
+  sheet = CSVDocument(test)
   sheet.build()
 }
 
