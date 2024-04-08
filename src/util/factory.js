@@ -7,7 +7,7 @@ const _ = {
   each: require('lodash/each'),
 }
 
-const InputSanitizer = require('./inputSanitizer')
+//const InputSanitizer = require('./inputSanitizer')
 const Radar = require('../models/radar')
 const Quadrant = require('../models/quadrant')
 const Ring = require('../models/ring')
@@ -15,7 +15,7 @@ const Blip = require('../models/blip')
 const GraphingRadar = require('../graphing/radar')
 const config = require('../config')
 const featureToggles = config().featureToggles
-const { getDocumentOrSheetId } = require('./urlUtils')
+//const { getDocumentOrSheetId } = require('./urlUtils')
 const { getGraphSize, graphConfig } = require('../graphing/config')
 const plotRadar = function (title, blips, currentRadarName, /*alternativeRadars*/) {
   
@@ -122,7 +122,6 @@ const plotRadarGraph = function (title, blips, currentRadarName/*, alternativeRa
 const CSVDocument = function (filePath) {
   var self = {}
 
-  //try with url to csv directly as filepath
   self.build = function () {
     d3.csv(filePath)
       .then(createBlips)
@@ -130,7 +129,7 @@ const CSVDocument = function (filePath) {
 
   var createBlips = function (data) {
     delete data.columns
-    var blips = _.map(data, new InputSanitizer().sanitize)
+    var blips = _.map(data/*,new InputSanitizer().sanitize*/)
     featureToggles.UIRefresh2022
       ? plotRadarGraph(FileName(filePath), blips, 'CSV File', [])
       : plotRadar(FileName(filePath), blips, 'CSV File', [])
@@ -151,10 +150,8 @@ const FileName = function (filePath) {
 const Factory = function () {
   var sheet
 
-  const paramId = getDocumentOrSheetId()
-  
-  //for csv
-  sheet = CSVDocument(paramId)
+  //insert the url for the csv
+  sheet = CSVDocument('https://raw.githubusercontent.com/August-Brandt/DTR-specfile-generator/main/specfile.csv')
   sheet.build()
 }
 
